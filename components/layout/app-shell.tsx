@@ -1,3 +1,5 @@
+"use client";
+
 import { visibleNavItems } from "@/components/layout/nav-config";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { BottomNav } from "@/components/layout/bottom-nav";
