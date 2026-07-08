@@ -19,13 +19,18 @@ export function SidebarNav({ items, onNavigate }: { items: NavItem[]; onNavigate
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
               active
-                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                ? "gradient-primary text-white shadow-md shadow-primary/25"
+                : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             )}
           >
-            <Icon className="size-4" />
+            <Icon
+              className={cn(
+                "size-4 shrink-0 transition-transform",
+                active ? "scale-105" : "group-hover:scale-105"
+              )}
+            />
             {item.label}
           </Link>
         );

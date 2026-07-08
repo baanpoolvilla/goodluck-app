@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { isValidTaskTransition } from "@/lib/validation/tasks";
 import type { TaskStatus } from "@/lib/db/database.types";
 
@@ -46,6 +47,7 @@ export function TaskStatusActions({ taskId, status }: { taskId: string; status: 
         <Button
           key={action.to}
           variant={action.variant ?? "default"}
+          className={cn(!action.variant && "gradient-primary border-0")}
           disabled={loading !== null}
           onClick={() => updateStatus(action.to)}
         >

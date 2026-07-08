@@ -35,8 +35,8 @@ export function RichTextEditor({
   if (!editor) return null;
 
   return (
-    <div className="rounded-md border">
-      <div className="flex gap-1 border-b p-1">
+    <div className="overflow-hidden rounded-xl border focus-within:ring-2 focus-within:ring-ring/50">
+      <div className="flex gap-1 border-b bg-muted/40 p-1.5">
         <Button
           type="button"
           variant="ghost"

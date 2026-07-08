@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Menu, LogOut } from "lucide-react";
+import { Menu, LogOut, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,7 +45,7 @@ export function Topbar({
     .toUpperCase();
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/60 bg-background/80 px-4 backdrop-blur-md supports-backdrop-filter:bg-background/60">
       <div className="flex items-center gap-2">
         <Sheet>
           <SheetTrigger
@@ -53,31 +54,44 @@ export function Topbar({
             <Menu className="size-5" />
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-4">
-            <SheetTitle>Company Ops</SheetTitle>
+            <SheetTitle className="flex items-center gap-2.5">
+              <div className="gradient-primary flex size-7 shrink-0 items-center justify-center rounded-lg">
+                <Sparkles className="size-3.5 text-white" />
+              </div>
+              Company Ops
+            </SheetTitle>
             <div className="mt-4">
               <SidebarNav items={items} />
             </div>
           </SheetContent>
         </Sheet>
-        <span className="font-semibold">Company Ops & Grading</span>
+        <span className="gradient-text font-semibold md:hidden">Company Ops</span>
       </div>
 
       <div className="flex items-center gap-2">
         <ThemeToggle />
         <DropdownMenu>
-          <DropdownMenuTrigger render={<Button variant="ghost" className="flex items-center gap-2 px-2" />}>
-            <Avatar className="size-7">
-              <AvatarFallback>{initials || "U"}</AvatarFallback>
+          <DropdownMenuTrigger
+            render={<Button variant="ghost" className="flex items-center gap-2 rounded-full px-2" />}
+          >
+            <Avatar className="size-7 ring-2 ring-primary/20">
+              <AvatarFallback className="gradient-primary text-[11px] font-semibold text-white">
+                {initials || "U"}
+              </AvatarFallback>
             </Avatar>
-            <span className="hidden text-sm sm:inline">{fullName}</span>
+            <span className="hidden text-sm font-medium sm:inline">{fullName}</span>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuLabel>
               {fullName}
-              <div className="text-xs font-normal capitalize text-muted-foreground">{role}</div>
+              <div className="mt-1">
+                <Badge variant="secondary" className="capitalize">
+                  {role}
+                </Badge>
+              </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}>
+            <DropdownMenuItem onClick={handleSignOut} variant="destructive">
               <LogOut className="mr-2 size-4" />
               ออกจากระบบ
             </DropdownMenuItem>

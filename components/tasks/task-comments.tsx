@@ -44,16 +44,18 @@ export function TaskComments({ taskId, comments }: { taskId: string; comments: C
 
   return (
     <div className="space-y-4">
-      <h2 className="font-semibold">ความเห็น</h2>
+      <h2 className="font-semibold">ความเห็น ({comments.length})</h2>
 
       <div className="space-y-3">
         {comments.length === 0 && <p className="text-sm text-muted-foreground">ยังไม่มีความเห็น</p>}
         {comments.map((c) => (
           <div key={c.id} className="flex gap-3">
             <Avatar className="size-8">
-              <AvatarFallback>{c.author?.full_name?.[0] ?? "?"}</AvatarFallback>
+              <AvatarFallback className="gradient-primary text-[10px] font-semibold text-white">
+                {c.author?.full_name?.[0] ?? "?"}
+              </AvatarFallback>
             </Avatar>
-            <div className="flex-1 rounded-md border p-3">
+            <div className="flex-1 rounded-xl bg-muted/60 p-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">{c.author?.full_name ?? "ไม่ทราบชื่อ"}</span>
                 <span className="text-xs text-muted-foreground">
@@ -69,10 +71,11 @@ export function TaskComments({ taskId, comments }: { taskId: string; comments: C
       <form onSubmit={handleSubmit} className="space-y-2">
         <Textarea
           placeholder="เขียนความเห็น..."
+          className="resize-none"
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
-        <Button type="submit" disabled={loading || !content.trim()}>
+        <Button type="submit" className="gradient-primary border-0" disabled={loading || !content.trim()}>
           {loading ? "กำลังส่ง..." : "ส่งความเห็น"}
         </Button>
       </form>

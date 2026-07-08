@@ -3,8 +3,8 @@ import { getSessionUser, isManagerOrAdmin } from "@/lib/auth/session";
 import { ScoreCard } from "@/components/dashboard/score-card";
 import { TaskOverview } from "@/components/dashboard/task-overview";
 import { Leaderboard } from "@/components/dashboard/leaderboard";
-import { MonthlyTrendChart } from "@/components/dashboard/monthly-trend-chart";
 import { DashboardRealtime, type ReportStatusEntry } from "@/components/dashboard/dashboard-realtime";
+import { MonthlyTrendChart } from "@/components/dashboard/monthly-trend-chart-lazy";
 import { format } from "date-fns";
 
 export default async function DashboardPage() {
@@ -88,8 +88,8 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Dashboard</h1>
+    <div className="space-y-5">
+      <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <ScoreCard totalScore={myGrade?.total_score ?? null} grade={myGrade?.grade ?? null} />

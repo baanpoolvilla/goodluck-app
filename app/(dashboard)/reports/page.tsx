@@ -1,8 +1,9 @@
+import { CheckCircle2, Clock3 } from "lucide-react";
+import { format } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth/session";
 import { ReportSubmitForm } from "@/components/reports/report-submit-form";
 import { ReportHistory } from "@/components/reports/report-history";
-import { Badge } from "@/components/ui/badge";
 
 export default async function ReportsPage() {
   const session = await getSessionUser();
@@ -28,28 +29,39 @@ export default async function ReportsPage() {
   ]);
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Daily Report</h1>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Daily Report</h1>
+        <p className="text-sm text-muted-foreground">{format(new Date(), "EEEE d MMMM yyyy")}</p>
+      </div>
 
       <div>
-        <div className="mb-2 flex items-center gap-2">
-          <h2 className="font-medium">วันนี้</h2>
-          {todayReport?.is_late && <Badge variant="secondary">ลงสาย</Badge>}
-          {todayReport && !todayReport.is_late && <Badge>ลงแล้ว</Badge>}
-        </div>
-
         {todayReport ? (
-          <div
-            className="prose prose-sm dark:prose-invert max-w-none rounded-md border p-4"
-            dangerouslySetInnerHTML={{ __html: todayReport.content }}
-          />
+          <div className="overflow-hidden rounded-2xl border shadow-sm">
+            <div
+              className={
+                todayReport.is_late
+                  ? "flex items-center gap-2 bg-amber-500 px-5 py-3 text-white"
+                  : "flex items-center gap-2 bg-emerald-500 px-5 py-3 text-white"
+              }
+            >
+              {todayReport.is_late ? <Clock3 className="size-4" /> : <CheckCircle2 className="size-4" />}
+              <span className="text-sm font-medium">
+                {todayReport.is_late ? "ลงรายงานวันนี้แล้ว (สาย)" : "ลงรายงานวันนี้แล้ว ทันเวลา"}
+              </span>
+            </div>
+            <div
+              className="prose prose-sm dark:prose-invert max-w-none bg-card p-5"
+              dangerouslySetInnerHTML={{ __html: todayReport.content }}
+            />
+          </div>
         ) : (
           <ReportSubmitForm />
         )}
       </div>
 
       <div>
-        <h2 className="mb-2 font-medium">ประวัติเดือนนี้</h2>
+        <h2 className="mb-3 font-medium">ประวัติเดือนนี้</h2>
         <ReportHistory reports={history ?? []} />
       </div>
     </div>

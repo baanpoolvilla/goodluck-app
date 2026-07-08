@@ -2,9 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { toast } from "sonner";
-import { RichTextEditor } from "@/components/reports/rich-text-editor";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const RichTextEditor = dynamic(
+  () => import("@/components/reports/rich-text-editor").then((m) => m.RichTextEditor),
+  { ssr: false, loading: () => <Skeleton className="h-48 w-full rounded-lg" /> }
+);
 
 export function ReportSubmitForm() {
   const router = useRouter();
@@ -34,11 +40,16 @@ export function ReportSubmitForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <RichTextEditor value={content} onChange={setContent} placeholder="วันนี้ทำอะไรบ้าง..." />
-      <Button type="submit" disabled={loading || !content.trim()}>
-        {loading ? "กำลังส่ง..." : "ส่ง Daily Report"}
-      </Button>
-    </form>
+    <div className="overflow-hidden rounded-2xl border shadow-sm">
+      <div className="gradient-primary px-5 py-3">
+        <p className="text-sm font-medium text-white/90">วันนี้ยังไม่ได้ลงรายงาน</p>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-3 bg-card p-5">
+        <RichTextEditor value={content} onChange={setContent} placeholder="วันนี้ทำอะไรบ้าง..." />
+        <Button type="submit" className="gradient-primary border-0" disabled={loading || !content.trim()}>
+          {loading ? "กำลังส่ง..." : "ส่ง Daily Report"}
+        </Button>
+      </form>
+    </div>
   );
 }

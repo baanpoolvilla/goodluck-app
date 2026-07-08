@@ -4,15 +4,14 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionUser, isManagerOrAdmin } from "@/lib/auth/session";
 import { buttonVariants } from "@/components/ui/button";
 import { TaskFilters } from "@/components/tasks/task-filters";
-import { TaskTable } from "@/components/tasks/task-table";
-import type { TaskStatus } from "@/lib/db/database.types";
+import { TaskBoard } from "@/components/tasks/task-board";
 
 export default async function TasksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
-  const { status, q } = await searchParams;
+  const { q } = await searchParams;
   const session = await getSessionUser();
   if (!session) return null;
 
@@ -22,17 +21,19 @@ export default async function TasksPage({
     .select("*, assignee:users!assigned_to(id, full_name)")
     .order("deadline", { ascending: true });
 
-  if (status) query = query.eq("status", status as TaskStatus);
   if (q) query = query.ilike("title", `%${q}%`);
 
   const { data: tasks } = await query;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Tasks</h1>
+    <div className="space-y-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
+          <p className="text-sm text-muted-foreground">ภาพรวมงานทั้งหมด แบ่งตามสถานะ</p>
+        </div>
         {isManagerOrAdmin(session.profile) && (
-          <Link href="/tasks/new" className={buttonVariants()}>
+          <Link href="/tasks/new" className={buttonVariants({ className: "gradient-primary border-0" })}>
             <Plus className="mr-2 size-4" />
             สร้างงานใหม่
           </Link>
@@ -40,7 +41,7 @@ export default async function TasksPage({
       </div>
 
       <TaskFilters />
-      <TaskTable tasks={tasks ?? []} />
+      <TaskBoard tasks={tasks ?? []} />
     </div>
   );
 }

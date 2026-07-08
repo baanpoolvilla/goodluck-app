@@ -21,6 +21,13 @@ interface AssignableUser {
   full_name: string;
 }
 
+const PRIORITY_LABEL: Record<string, string> = {
+  low: "ต่ำ",
+  medium: "กลาง",
+  high: "สูง",
+  critical: "วิกฤต",
+};
+
 export function TaskCreateForm({ users }: { users: AssignableUser[] }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -59,7 +66,10 @@ export function TaskCreateForm({ users }: { users: AssignableUser[] }) {
   }
 
   return (
-    <Card>
+    <Card className="overflow-hidden py-0">
+      <div className="gradient-primary px-6 py-4">
+        <p className="text-sm font-medium text-white/90">รายละเอียดงาน</p>
+      </div>
       <CardContent className="pt-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -90,7 +100,9 @@ export function TaskCreateForm({ users }: { users: AssignableUser[] }) {
                 onValueChange={(v) => setForm({ ...form, assigned_to: v ?? "" })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="เลือกผู้รับผิดชอบ" />
+                  <SelectValue placeholder="เลือกผู้รับผิดชอบ">
+                    {(value: string) => users.find((u) => u.id === value)?.full_name ?? "เลือกผู้รับผิดชอบ"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {users.map((u) => (
@@ -106,7 +118,7 @@ export function TaskCreateForm({ users }: { users: AssignableUser[] }) {
               <Label>ความสำคัญ</Label>
               <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v ?? "medium" })}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue>{(value: string) => PRIORITY_LABEL[value] ?? value}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">ต่ำ</SelectItem>
@@ -144,7 +156,7 @@ export function TaskCreateForm({ users }: { users: AssignableUser[] }) {
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" className="gradient-primary border-0" disabled={loading}>
             {loading ? "กำลังสร้าง..." : "สร้างงาน"}
           </Button>
         </form>

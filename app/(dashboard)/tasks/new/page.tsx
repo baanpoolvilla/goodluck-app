@@ -17,8 +17,8 @@ export default async function NewTaskPage() {
     .order("full_name");
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">สร้างงานใหม่</h1>
+    <div className="mx-auto max-w-2xl space-y-4">
+      <h1 className="text-2xl font-semibold tracking-tight">สร้างงานใหม่</h1>
       <TaskCreateForm users={users ?? []} />
     </div>
   );
