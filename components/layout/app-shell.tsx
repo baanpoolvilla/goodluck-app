@@ -5,10 +5,20 @@ import { visibleNavItems } from "@/components/layout/nav-config";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { Topbar } from "@/components/layout/topbar";
+import { REPORT_CHANNELS } from "@/lib/reports/channels";
 import type { Profile } from "@/lib/auth/session";
 
 export function AppShell({ profile, children }: { profile: Profile; children: React.ReactNode }) {
-  const items = visibleNavItems(profile.role);
+  const canSeeAllChannels = profile.role === "manager" || profile.role === "admin";
+  const myChannels = canSeeAllChannels
+    ? REPORT_CHANNELS
+    : REPORT_CHANNELS.filter((c) => c.value === profile.channel);
+
+  const items = visibleNavItems(profile.role).map((item) =>
+    item.href === "/reports"
+      ? { ...item, children: myChannels.map((c) => ({ href: `/reports/${c.value}`, label: c.label })) }
+      : item
+  );
 
   return (
     <div className="flex min-h-screen w-full bg-muted/40">

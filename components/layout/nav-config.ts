@@ -14,6 +14,7 @@ export interface NavItem {
   label: string;
   icon: LucideIcon;
   roles?: UserRole[];
+  children?: { href: string; label: string }[];
 }
 
 export const NAV_ITEMS: NavItem[] = [
