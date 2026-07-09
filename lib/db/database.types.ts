@@ -19,6 +19,7 @@ export type TaskStatus =
   | "overdue"
   | "cancelled";
 export type GradeModule = "task" | "daily_report";
+export type ReportChannel = "it" | "marketing" | "admin" | "housekeeper";
 
 export interface Database {
   public: {
@@ -32,6 +33,7 @@ export interface Database {
           role: UserRole;
           line_user_id: string | null;
           department: string | null;
+          channel: ReportChannel | null;
           is_active: boolean;
           created_at: string;
           updated_at: string;
@@ -124,17 +126,81 @@ export interface Database {
           content: string;
           submitted_at: string;
           is_late: boolean;
+          channel: ReportChannel;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["daily_reports"]["Row"]> & {
           user_id: string;
           report_date: string;
           content: string;
+          channel: ReportChannel;
         };
         Update: Partial<Database["public"]["Tables"]["daily_reports"]["Row"]>;
         Relationships: [
           {
             foreignKeyName: "daily_reports_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      report_comments: {
+        Row: {
+          id: string;
+          report_id: string;
+          user_id: string;
+          content: string;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["report_comments"]["Row"]> & {
+          report_id: string;
+          user_id: string;
+          content: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["report_comments"]["Row"]>;
+        Relationships: [
+          {
+            foreignKeyName: "report_comments_report_id_fkey";
+            columns: ["report_id"];
+            isOneToOne: false;
+            referencedRelation: "daily_reports";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "report_comments_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      report_reactions: {
+        Row: {
+          id: string;
+          report_id: string;
+          user_id: string;
+          emoji: string;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["report_reactions"]["Row"]> & {
+          report_id: string;
+          user_id: string;
+          emoji: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["report_reactions"]["Row"]>;
+        Relationships: [
+          {
+            foreignKeyName: "report_reactions_report_id_fkey";
+            columns: ["report_id"];
+            isOneToOne: false;
+            referencedRelation: "daily_reports";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "report_reactions_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "users";
@@ -271,6 +337,7 @@ export interface Database {
       task_priority: TaskPriority;
       task_status: TaskStatus;
       grade_module: GradeModule;
+      report_channel: ReportChannel;
     };
     CompositeTypes: Record<string, never>;
   };

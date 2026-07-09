@@ -1,69 +1,22 @@
-import { CheckCircle2, Clock3 } from "lucide-react";
-import { format } from "date-fns";
-import { createClient } from "@/lib/supabase/server";
-import { getSessionUser } from "@/lib/auth/session";
-import { ReportSubmitForm } from "@/components/reports/report-submit-form";
-import { ReportHistory } from "@/components/reports/report-history";
+import { redirect } from "next/navigation";
+import { getSessionUser, isManagerOrAdmin } from "@/lib/auth/session";
+import { REPORT_CHANNEL_VALUES } from "@/lib/reports/channels";
 
-export default async function ReportsPage() {
+export default async function ReportsIndexPage() {
   const session = await getSessionUser();
   if (!session) return null;
 
-  const today = new Date().toISOString().slice(0, 10);
-  const monthStart = today.slice(0, 8) + "01";
+  if (session.profile.channel) {
+    redirect(`/reports/${session.profile.channel}`);
+  }
 
-  const supabase = await createClient();
-  const [{ data: todayReport }, { data: history }] = await Promise.all([
-    supabase
-      .from("daily_reports")
-      .select("*")
-      .eq("user_id", session.id)
-      .eq("report_date", today)
-      .maybeSingle(),
-    supabase
-      .from("daily_reports")
-      .select("*")
-      .eq("user_id", session.id)
-      .gte("report_date", monthStart)
-      .order("report_date", { ascending: false }),
-  ]);
+  if (isManagerOrAdmin(session.profile)) {
+    redirect(`/reports/${REPORT_CHANNEL_VALUES[0]}`);
+  }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Daily Report</h1>
-        <p className="text-sm text-muted-foreground">{format(new Date(), "EEEE d MMMM yyyy")}</p>
-      </div>
-
-      <div>
-        {todayReport ? (
-          <div className="overflow-hidden rounded-2xl border shadow-sm">
-            <div
-              className={
-                todayReport.is_late
-                  ? "flex items-center gap-2 bg-amber-500 px-5 py-3 text-white"
-                  : "flex items-center gap-2 bg-emerald-500 px-5 py-3 text-white"
-              }
-            >
-              {todayReport.is_late ? <Clock3 className="size-4" /> : <CheckCircle2 className="size-4" />}
-              <span className="text-sm font-medium">
-                {todayReport.is_late ? "ลงรายงานวันนี้แล้ว (สาย)" : "ลงรายงานวันนี้แล้ว ทันเวลา"}
-              </span>
-            </div>
-            <div
-              className="prose prose-sm dark:prose-invert max-w-none bg-card p-5"
-              dangerouslySetInnerHTML={{ __html: todayReport.content }}
-            />
-          </div>
-        ) : (
-          <ReportSubmitForm />
-        )}
-      </div>
-
-      <div>
-        <h2 className="mb-3 font-medium">ประวัติเดือนนี้</h2>
-        <ReportHistory reports={history ?? []} />
-      </div>
+    <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+      ยังไม่ได้กำหนด channel ให้บัญชีนี้ กรุณาติดต่อ Admin เพื่อกำหนด channel ก่อนใช้งาน Report
     </div>
   );
 }

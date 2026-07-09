@@ -46,12 +46,15 @@ export default async function SettingsPage() {
           <CardHeader>
             <CardTitle>Admin</CardTitle>
           </CardHeader>
-          <CardContent className="flex gap-2">
+          <CardContent className="flex flex-wrap gap-2">
             <Link href="/settings/grading" className={buttonVariants({ variant: "outline" })}>
               ตั้งค่าการตัดเกรด
             </Link>
             <Link href="/hub" className={buttonVariants({ variant: "outline" })}>
               จัดการ App Hub
+            </Link>
+            <Link href="/settings/users" className={buttonVariants({ variant: "outline" })}>
+              จัดการผู้ใช้งาน
             </Link>
           </CardContent>
         </Card>

@@ -2,7 +2,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 const PUBLIC_PATHS = ["/login", "/register"];
-const ADMIN_ONLY_PREFIXES = ["/settings/grading", "/api/hub", "/api/users", "/api/grades/calculate"];
+const ADMIN_ONLY_PREFIXES = [
+  "/settings/grading",
+  "/settings/users",
+  "/api/hub",
+  "/api/users",
+  "/api/grades/calculate",
+];
 
 export async function proxy(request: NextRequest) {
   const { response, user, supabase } = await updateSession(request);

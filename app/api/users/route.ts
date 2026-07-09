@@ -2,11 +2,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser, isAdmin, isManagerOrAdmin } from "@/lib/auth/session";
+import { reportChannelSchema } from "@/lib/reports/channels";
 
 const updateUserSchema = z.object({
   id: z.string().uuid(),
   role: z.enum(["admin", "manager", "employee"]).optional(),
   department: z.string().max(100).optional(),
+  channel: reportChannelSchema.nullable().optional(),
   is_active: z.boolean().optional(),
   line_user_id: z.string().max(100).nullable().optional(),
 });

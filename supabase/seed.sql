@@ -23,8 +23,63 @@ insert into auth.users (
 on conflict (id) do nothing;
 
 update public.users
-set role = 'admin', full_name = 'System Admin', department = 'Management'
+set role = 'admin', full_name = 'System Admin', department = 'Management', channel = 'admin'
 where id = '00000000-0000-0000-0000-000000000001';
+
+-- 4 sample employees, one per report channel --------------------------------
+-- Lets the IT/Marketing/Admin/Housekeeper channel feeds be exercised locally
+-- without having to sign up new accounts by hand.
+insert into auth.users (
+  id, instance_id, aud, role, email, encrypted_password,
+  email_confirmed_at, created_at, updated_at,
+  raw_app_meta_data, raw_user_meta_data
+) values
+  (
+    '00000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated', 'authenticated', 'it.staff@company.local',
+    crypt('ChangeMe123!', gen_salt('bf')),
+    now(), now(), now(),
+    '{"provider":"email","providers":["email"]}',
+    '{"full_name":"Nan IT"}'
+  ),
+  (
+    '00000000-0000-0000-0000-000000000003',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated', 'authenticated', 'marketing.staff@company.local',
+    crypt('ChangeMe123!', gen_salt('bf')),
+    now(), now(), now(),
+    '{"provider":"email","providers":["email"]}',
+    '{"full_name":"Bee Marketing"}'
+  ),
+  (
+    '00000000-0000-0000-0000-000000000004',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated', 'authenticated', 'admin.staff@company.local',
+    crypt('ChangeMe123!', gen_salt('bf')),
+    now(), now(), now(),
+    '{"provider":"email","providers":["email"]}',
+    '{"full_name":"Nam Admin"}'
+  ),
+  (
+    '00000000-0000-0000-0000-000000000005',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated', 'authenticated', 'housekeeper.staff@company.local',
+    crypt('ChangeMe123!', gen_salt('bf')),
+    now(), now(), now(),
+    '{"provider":"email","providers":["email"]}',
+    '{"full_name":"Somporn Housekeeper"}'
+  )
+on conflict (id) do nothing;
+
+update public.users set department = 'IT', channel = 'it'
+where id = '00000000-0000-0000-0000-000000000002';
+update public.users set department = 'Marketing', channel = 'marketing'
+where id = '00000000-0000-0000-0000-000000000003';
+update public.users set department = 'Admin', channel = 'admin'
+where id = '00000000-0000-0000-0000-000000000004';
+update public.users set department = 'Housekeeping', channel = 'housekeeper'
+where id = '00000000-0000-0000-0000-000000000005';
 
 -- grade_configs: task + report weights sum to 100% -------------------------
 insert into public.grade_configs (

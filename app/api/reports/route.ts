@@ -1,20 +1,43 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getSessionUser } from "@/lib/auth/session";
+import { getSessionUser, isManagerOrAdmin } from "@/lib/auth/session";
 import { createReportSchema } from "@/lib/validation/reports";
+import { isReportChannel } from "@/lib/reports/channels";
+
+// Feed shape: one row per daily report, with the author + comment thread +
+// reaction list embedded so the channel feed renders from a single query.
+const FEED_SELECT =
+  "*, author:users!user_id(id, full_name, avatar_url), comments:report_comments(*, author:users!user_id(id, full_name, avatar_url)), reactions:report_reactions(*)";
 
 export async function GET(request: NextRequest) {
   const session = await getSessionUser();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const requestedChannel = request.nextUrl.searchParams.get("channel");
+  const canPickChannel = isManagerOrAdmin(session.profile);
+  const channel =
+    canPickChannel && requestedChannel && isReportChannel(requestedChannel)
+      ? requestedChannel
+      : session.profile.channel;
+
+  if (!channel) {
+    return NextResponse.json(
+      { error: "ยังไม่ได้กำหนด channel ให้บัญชีนี้ กรุณาติดต่อ Admin" },
+      { status: 400 }
+    );
+  }
+
   const month = request.nextUrl.searchParams.get("month");
   const supabase = await createClient();
   let query = supabase
     .from("daily_reports")
-    .select("*")
-    .eq("user_id", session.id)
-    .order("report_date", { ascending: false });
+    .select(FEED_SELECT)
+    .eq("channel", channel)
+    .order("report_date", { ascending: false })
+    .order("submitted_at", { ascending: false })
+    .order("created_at", { referencedTable: "report_comments", ascending: true })
+    .limit(60);
 
   if (month) {
     query = query.gte("report_date", `${month}-01`).lt("report_date", nextMonthStart(month));
@@ -23,12 +46,19 @@ export async function GET(request: NextRequest) {
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  return NextResponse.json({ data });
+  return NextResponse.json({ data, channel });
 }
 
 export async function POST(request: NextRequest) {
   const session = await getSessionUser();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (!session.profile.channel) {
+    return NextResponse.json(
+      { error: "ยังไม่ได้กำหนด channel ให้บัญชีนี้ กรุณาติดต่อ Admin" },
+      { status: 400 }
+    );
+  }
 
   const body = await request.json().catch(() => null);
   const parsed = createReportSchema.safeParse(body);
@@ -67,8 +97,9 @@ export async function POST(request: NextRequest) {
       report_date: reportDate,
       content: parsed.data.content,
       is_late: isLate,
+      channel: session.profile.channel,
     })
-    .select()
+    .select(FEED_SELECT)
     .single();
 
   if (error) {

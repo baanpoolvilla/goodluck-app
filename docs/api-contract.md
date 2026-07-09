@@ -16,13 +16,22 @@ unless noted.
 | DELETE | `/api/tasks/:id` | manager+ | |
 | GET/POST | `/api/tasks/:id/comments` | participants (assignee/assigner) or manager+ | |
 
-## Daily Reports
+## Daily Reports (channel feed)
+
+Reports are grouped into 4 fixed channels (`it`, `marketing`, `admin`, `housekeeper`,
+see `lib/reports/channels.ts`). Each user belongs to at most one channel
+(`users.channel`, set by an admin at `/settings/users`) and only sees that
+channel's feed; manager/admin roles can read and switch between all 4. Grading
+semantics (one report per user per day, deadline, lateness, penalties) are
+unchanged from before — channel is an added dimension, not a replacement.
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| GET | `/api/reports?month=YYYY-MM` | own | |
-| POST | `/api/reports` | own | Enforces one row per `(user_id, report_date)`; marks `is_late` and applies the 0.5x late penalty via the service-role client if submitted after the configured deadline but within the grace period. Returns 422 once the grace period has passed. |
-| GET | `/api/reports/team?date=YYYY-MM-DD` | manager+ | Full active-user roster cross-joined with that day's reports. |
+| GET | `/api/reports?channel=&month=YYYY-MM` | own channel; manager+ may pass any `channel` | Returns up to 60 most recent reports for the channel, each embedding `author`, `comments` (with their own `author`), and `reactions`. Employees requesting a foreign channel are silently redirected to their own. |
+| POST | `/api/reports` | own | Requires the caller to have a `channel` assigned (400 otherwise). Enforces one row per `(user_id, report_date)`; marks `is_late` and applies the 0.5x late penalty via the service-role client if submitted after the configured deadline but within the grace period. Returns 422 once the grace period has passed. |
+| GET/POST | `/api/reports/:id/comments` | channel members (RLS-scoped) or manager+ | Body: `{ content }`. |
+| POST | `/api/reports/:id/reactions` | channel members (RLS-scoped) or manager+ | Body: `{ emoji }`, restricted to the fixed palette in `lib/validation/reports.ts`. Re-adding the same emoji is a no-op. |
+| DELETE | `/api/reports/:id/reactions?emoji=` | own reaction only | Removes the caller's own reaction. |
 
 ## Grades
 
@@ -45,7 +54,7 @@ unless noted.
 | Method | Path | Auth | Notes |
 |---|---|---|---|
 | GET | `/api/users` | manager+ | |
-| PATCH | `/api/users` | admin | Body: `{ id, role?, department?, is_active?, line_user_id? }` |
+| PATCH | `/api/users` | admin | Body: `{ id, role?, department?, channel?, is_active?, line_user_id? }`. `channel` is one of `it`/`marketing`/`admin`/`housekeeper`/`null`, edited from `/settings/users`. |
 
 ## Webhooks
 
