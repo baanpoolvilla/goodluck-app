@@ -5,6 +5,7 @@ import {
   NotebookPen,
   GraduationCap,
   LayoutGrid,
+  CalendarDays,
   Settings,
   type LucideIcon,
 } from "lucide-react";
@@ -22,6 +23,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/tasks", label: "Tasks", icon: ListTodo },
   { href: "/reports", label: "Reports", icon: NotebookPen },
   { href: "/grades", label: "Grades", icon: GraduationCap },
+  { href: "/calendar", label: "ปฏิทินวันลา", icon: CalendarDays },
   { href: "/hub", label: "App Hub", icon: LayoutGrid },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

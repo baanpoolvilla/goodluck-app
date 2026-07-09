@@ -20,6 +20,7 @@ export type TaskStatus =
   | "cancelled";
 export type GradeModule = "task" | "daily_report";
 export type ReportChannel = "it" | "marketing" | "admin" | "housekeeper";
+export type LeaveType = "vacation" | "sick" | "personal" | "unpaid" | "other";
 
 export interface Database {
   public: {
@@ -297,6 +298,42 @@ export interface Database {
           },
         ];
       };
+      leaves: {
+        Row: {
+          id: string;
+          user_id: string;
+          start_date: string;
+          end_date: string;
+          leave_type: LeaveType;
+          reason: string | null;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["leaves"]["Row"]> & {
+          user_id: string;
+          start_date: string;
+          end_date: string;
+          created_by: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["leaves"]["Row"]>;
+        Relationships: [
+          {
+            foreignKeyName: "leaves_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "leaves_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       app_hub_items: {
         Row: {
           id: string;
@@ -338,6 +375,7 @@ export interface Database {
       task_status: TaskStatus;
       grade_module: GradeModule;
       report_channel: ReportChannel;
+      leave_type: LeaveType;
     };
     CompositeTypes: Record<string, never>;
   };
