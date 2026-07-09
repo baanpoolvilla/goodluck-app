@@ -3,14 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import type { ChannelMeta } from "@/lib/reports/channels";
+import { REPORT_CHANNELS } from "@/lib/reports/channels";
+import type { ReportChannel } from "@/lib/db/database.types";
 
-export function ChannelSidebar({ channels }: { channels: ChannelMeta[] }) {
+// Takes plain channel values (not the ChannelMeta objects, which carry a
+// component reference in `icon`) — a Server Component can't pass a function
+// as a prop into this Client Component, so the icon lookup happens here,
+// client-side, against the shared REPORT_CHANNELS constant instead.
+export function ChannelSidebar({ channels }: { channels: ReportChannel[] }) {
   const pathname = usePathname();
+  const items = REPORT_CHANNELS.filter((c) => channels.includes(c.value));
 
   return (
     <nav className="flex gap-1.5 overflow-x-auto lg:flex-col lg:overflow-visible">
-      {channels.map((c) => {
+      {items.map((c) => {
         const href = `/reports/${c.value}`;
         const active = pathname === href;
         const Icon = c.icon;

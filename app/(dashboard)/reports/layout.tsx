@@ -1,15 +1,15 @@
 import { getSessionUser, isManagerOrAdmin } from "@/lib/auth/session";
 import { ChannelSidebar } from "@/components/reports/channel-sidebar";
-import { REPORT_CHANNELS, channelMeta } from "@/lib/reports/channels";
+import { REPORT_CHANNEL_VALUES } from "@/lib/reports/channels";
 
 export default async function ReportsLayout({ children }: { children: React.ReactNode }) {
   const session = await getSessionUser();
   if (!session) return null;
 
   const channels = isManagerOrAdmin(session.profile)
-    ? REPORT_CHANNELS
+    ? REPORT_CHANNEL_VALUES
     : session.profile.channel
-      ? [channelMeta(session.profile.channel)]
+      ? [session.profile.channel]
       : [];
 
   return (
