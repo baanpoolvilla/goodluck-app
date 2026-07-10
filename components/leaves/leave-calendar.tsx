@@ -1,13 +1,32 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
-import { format, parseISO, startOfMonth, endOfMonth } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import {
+  format,
+  parseISO,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  addMonths,
+  subMonths,
+  isSameMonth,
+  isToday,
+} from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { LeaveTypeBadge } from "@/components/leaves/leave-type-badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { LEAVE_TYPE_CLASSES, LEAVE_TYPE_LABEL } from "@/components/leaves/leave-type-badge";
 import { LeaveFormDialog } from "@/components/leaves/leave-form-dialog";
+import { cn } from "@/lib/utils";
 import type { Database } from "@/lib/db/database.types";
 
 type Leave = Database["public"]["Tables"]["leaves"]["Row"] & {
@@ -18,8 +37,18 @@ interface SelectableUser {
   full_name: string;
 }
 
+const WEEKDAY_LABELS = ["จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์", "อาทิตย์"];
+const MAX_VISIBLE_PER_DAY = 3;
+
 function toDateOnly(d: Date) {
   return format(d, "yyyy-MM-dd");
+}
+
+function gridRange(month: Date) {
+  return {
+    start: startOfWeek(startOfMonth(month), { weekStartsOn: 1 }),
+    end: endOfWeek(endOfMonth(month), { weekStartsOn: 1 }),
+  };
 }
 
 export function LeaveCalendar({
@@ -37,7 +66,6 @@ export function LeaveCalendar({
 }) {
   const [leaves, setLeaves] = useState<Leave[]>(initialLeaves);
   const [month, setMonth] = useState(initialMonth);
-  const [selected, setSelected] = useState<Date>(new Date());
   const [loading, setLoading] = useState(false);
   const loadedMonths = useState(() => new Set([toDateOnly(startOfMonth(initialMonth))]))[0];
 
@@ -47,9 +75,8 @@ export function LeaveCalendar({
     loadedMonths.add(key);
 
     setLoading(true);
-    const from = toDateOnly(startOfMonth(target));
-    const to = toDateOnly(endOfMonth(target));
-    const res = await fetch(`/api/leaves?from=${from}&to=${to}`);
+    const { start, end } = gridRange(target);
+    const res = await fetch(`/api/leaves?from=${toDateOnly(start)}&to=${toDateOnly(end)}`);
     setLoading(false);
     if (!res.ok) return;
 
@@ -82,12 +109,10 @@ export function LeaveCalendar({
     return map;
   }, [leaves]);
 
-  const daysWithLeave = useMemo(
-    () => Array.from(leavesByDate.keys()).map((k) => parseISO(k)),
-    [leavesByDate]
-  );
-
-  const selectedLeaves = leavesByDate.get(toDateOnly(selected)) ?? [];
+  const gridDays = useMemo(() => {
+    const { start, end } = gridRange(month);
+    return eachDayOfInterval({ start, end });
+  }, [month]);
 
   function upsertLeave(saved: Leave) {
     setLeaves((prev) => {
@@ -104,89 +129,180 @@ export function LeaveCalendar({
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[auto_1fr]">
-      <Card className="w-fit">
-        <CardContent className="p-2">
-          <Calendar
-            mode="single"
-            month={month}
-            onMonthChange={handleMonthChange}
-            selected={selected}
-            onSelect={(d) => d && setSelected(d)}
-            modifiers={{ hasLeave: daysWithLeave }}
-            modifiersClassNames={{
-              hasLeave:
-                "relative after:absolute after:bottom-1 after:left-1/2 after:size-1.5 after:-translate-x-1/2 after:rounded-full after:bg-primary",
-            }}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="space-y-4 pt-6">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-medium">
-              {format(selected, "d MMMM yyyy")}
-              {loading && <span className="ml-2 text-xs text-muted-foreground">กำลังโหลด...</span>}
-            </h2>
+    <Card>
+      <CardContent className="space-y-3 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold">{format(month, "MMMM yyyy")}</h2>
+            {loading && <span className="text-xs text-muted-foreground">กำลังโหลด...</span>}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="เดือนก่อนหน้า"
+              onClick={() => handleMonthChange(subMonths(month, 1))}
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => handleMonthChange(new Date())}>
+              วันนี้
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="เดือนถัดไป"
+              onClick={() => handleMonthChange(addMonths(month, 1))}
+            >
+              <ChevronRight className="size-4" />
+            </Button>
             <LeaveFormDialog
               currentUserId={currentUserId}
               users={users}
               canPickUser={canManageAny}
-              renderTrigger={<Button size="sm" />}
+              renderTrigger={<Button size="sm" className="ml-1" />}
               onSaved={upsertLeave}
             >
               <Plus className="mr-1 size-4" />
               เพิ่มวันลา
             </LeaveFormDialog>
           </div>
+        </div>
 
-          {selectedLeaves.length === 0 ? (
-            <p className="text-sm text-muted-foreground">ไม่มีใครลาวันนี้</p>
-          ) : (
-            <ul className="space-y-3">
-              {selectedLeaves.map((leave) => {
-                const canEdit = canManageAny || leave.user_id === currentUserId;
-                return (
-                  <li
-                    key={leave.id}
-                    className="flex items-start justify-between gap-3 rounded-lg border p-3"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{leave.user?.full_name ?? "-"}</span>
-                        <LeaveTypeBadge type={leave.leave_type} />
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {leave.start_date === leave.end_date
-                          ? format(parseISO(leave.start_date), "d MMM yyyy")
-                          : `${format(parseISO(leave.start_date), "d MMM")} - ${format(
-                              parseISO(leave.end_date),
-                              "d MMM yyyy"
-                            )}`}
-                      </p>
-                      {leave.reason && <p className="text-sm">{leave.reason}</p>}
-                    </div>
-                    {canEdit && (
+        <div className="overflow-hidden rounded-lg border">
+          <div className="grid grid-cols-7 border-b bg-muted/40">
+            {WEEKDAY_LABELS.map((label) => (
+              <div
+                key={label}
+                className="px-2 py-2 text-center text-xs font-medium text-muted-foreground"
+              >
+                {label}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7">
+            {gridDays.map((day) => {
+              const key = toDateOnly(day);
+              const dayLeaves = leavesByDate.get(key) ?? [];
+              const inMonth = isSameMonth(day, month);
+              const today = isToday(day);
+              const visible = dayLeaves.slice(0, MAX_VISIBLE_PER_DAY);
+              const overflow = dayLeaves.length - visible.length;
+
+              return (
+                <div
+                  key={key}
+                  className={cn(
+                    "group flex min-h-28 flex-col gap-1 border-b border-r p-1.5 [&:nth-child(7n)]:border-r-0",
+                    !inMonth && "bg-muted/20"
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={cn(
+                        "flex size-6 items-center justify-center rounded-full text-xs font-medium",
+                        today
+                          ? "bg-primary text-primary-foreground"
+                          : inMonth
+                          ? "text-foreground"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {format(day, "d")}
+                    </span>
+                    <LeaveFormDialog
+                      currentUserId={currentUserId}
+                      users={users}
+                      canPickUser={canManageAny}
+                      defaultDate={key}
+                      renderTrigger={
+                        <button
+                          type="button"
+                          aria-label="เพิ่มวันลา"
+                          className="flex size-5 items-center justify-center rounded text-muted-foreground opacity-0 hover:bg-muted group-hover:opacity-100"
+                        />
+                      }
+                      onSaved={upsertLeave}
+                    >
+                      <Plus className="size-3.5" />
+                    </LeaveFormDialog>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    {visible.map((leave) => (
                       <LeaveFormDialog
+                        key={leave.id}
                         leave={leave}
                         currentUserId={currentUserId}
                         users={users}
                         canPickUser={canManageAny}
-                        renderTrigger={<Button size="sm" variant="outline" />}
+                        renderTrigger={
+                          <button
+                            type="button"
+                            className={cn(
+                              "truncate rounded-full px-2 py-0.5 text-left text-[11px] font-medium",
+                              LEAVE_TYPE_CLASSES[leave.leave_type]
+                            )}
+                          />
+                        }
                         onSaved={upsertLeave}
                         onDeleted={removeLeave}
                       >
-                        แก้ไข
+                        {leave.user?.full_name ?? "-"} · {LEAVE_TYPE_LABEL[leave.leave_type]}
                       </LeaveFormDialog>
+                    ))}
+
+                    {overflow > 0 && (
+                      <Popover>
+                        <PopoverTrigger
+                          render={
+                            <button
+                              type="button"
+                              className="truncate rounded-full px-2 py-0.5 text-left text-[11px] font-medium text-muted-foreground hover:bg-muted"
+                            />
+                          }
+                        >
+                          +{overflow} เพิ่มเติม
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-64">
+                          <PopoverHeader>
+                            <PopoverTitle>{format(day, "d MMMM yyyy")}</PopoverTitle>
+                          </PopoverHeader>
+                          <ul className="space-y-1">
+                            {dayLeaves.map((leave) => (
+                              <li key={leave.id}>
+                                <LeaveFormDialog
+                                  leave={leave}
+                                  currentUserId={currentUserId}
+                                  users={users}
+                                  canPickUser={canManageAny}
+                                  renderTrigger={
+                                    <button
+                                      type="button"
+                                      className={cn(
+                                        "w-full truncate rounded-md px-2 py-1 text-left text-xs font-medium",
+                                        LEAVE_TYPE_CLASSES[leave.leave_type]
+                                      )}
+                                    />
+                                  }
+                                  onSaved={upsertLeave}
+                                  onDeleted={removeLeave}
+                                >
+                                  {leave.user?.full_name ?? "-"} · {LEAVE_TYPE_LABEL[leave.leave_type]}
+                                </LeaveFormDialog>
+                              </li>
+                            ))}
+                          </ul>
+                        </PopoverContent>
+                      </Popover>
                     )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

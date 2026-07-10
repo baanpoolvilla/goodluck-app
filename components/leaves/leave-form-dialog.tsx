@@ -39,6 +39,7 @@ export function LeaveFormDialog({
   currentUserId,
   users,
   canPickUser,
+  defaultDate,
   renderTrigger,
   children,
   onSaved,
@@ -48,6 +49,7 @@ export function LeaveFormDialog({
   currentUserId: string;
   users: SelectableUser[];
   canPickUser: boolean;
+  defaultDate?: string;
   renderTrigger: React.ReactElement;
   children: React.ReactNode;
   onSaved: (leave: Leave) => void;
@@ -58,8 +60,8 @@ export function LeaveFormDialog({
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     user_id: leave?.user_id ?? currentUserId,
-    start_date: leave?.start_date ?? "",
-    end_date: leave?.end_date ?? "",
+    start_date: leave?.start_date ?? defaultDate ?? "",
+    end_date: leave?.end_date ?? defaultDate ?? "",
     leave_type: leave?.leave_type ?? "vacation",
     reason: leave?.reason ?? "",
   });

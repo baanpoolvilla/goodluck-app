@@ -9,7 +9,7 @@ export const LEAVE_TYPE_LABEL: Record<LeaveType, string> = {
   other: "อื่นๆ",
 };
 
-const LEAVE_TYPE_CLASSES: Record<LeaveType, string> = {
+export const LEAVE_TYPE_CLASSES: Record<LeaveType, string> = {
   vacation: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300",
   sick: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300",
   personal: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
