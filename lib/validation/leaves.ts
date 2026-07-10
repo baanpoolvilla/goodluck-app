@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const leaveTypeEnum = z.enum(["vacation", "sick", "personal", "unpaid", "other"]);
+export const leaveTypeEnum = z.enum(["day_off", "vacation", "sick", "personal", "unpaid", "other"]);
 
 const dateOnly = z
   .string()

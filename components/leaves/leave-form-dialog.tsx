@@ -32,7 +32,7 @@ interface SelectableUser {
   full_name: string;
 }
 
-const LEAVE_TYPES: LeaveType[] = ["vacation", "sick", "personal", "unpaid", "other"];
+const LEAVE_TYPES: LeaveType[] = ["day_off", "vacation", "sick", "personal", "unpaid", "other"];
 
 export function LeaveFormDialog({
   leave,

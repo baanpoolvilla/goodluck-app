@@ -20,7 +20,7 @@ export type TaskStatus =
   | "cancelled";
 export type GradeModule = "task" | "daily_report";
 export type ReportChannel = "it" | "marketing" | "admin" | "housekeeper";
-export type LeaveType = "vacation" | "sick" | "personal" | "unpaid" | "other";
+export type LeaveType = "day_off" | "vacation" | "sick" | "personal" | "unpaid" | "other";
 
 export interface Database {
   public: {

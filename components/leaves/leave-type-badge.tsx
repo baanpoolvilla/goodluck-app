@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import type { LeaveType } from "@/lib/db/database.types";
 
 export const LEAVE_TYPE_LABEL: Record<LeaveType, string> = {
+  day_off: "วันหยุด",
   vacation: "ลาพักร้อน",
   sick: "ลาป่วย",
   personal: "ลากิจ",
@@ -10,6 +11,7 @@ export const LEAVE_TYPE_LABEL: Record<LeaveType, string> = {
 };
 
 export const LEAVE_TYPE_CLASSES: Record<LeaveType, string> = {
+  day_off: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
   vacation: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300",
   sick: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300",
   personal: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
@@ -18,6 +20,7 @@ export const LEAVE_TYPE_CLASSES: Record<LeaveType, string> = {
 };
 
 export const LEAVE_TYPE_DOT: Record<LeaveType, string> = {
+  day_off: "bg-emerald-500",
   vacation: "bg-sky-500",
   sick: "bg-rose-500",
   personal: "bg-amber-500",
